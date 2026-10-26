@@ -476,6 +476,7 @@ namespace AutoTrack
 
         private void TraceTab_Checked(object sender, RoutedEventArgs e)
         {
+            if (TracePane == null) return;
             TrackerTabBtn.IsChecked = false;
             PhoneHomeTabBtn.IsChecked = false;
             TrackerPane.Visibility = Visibility.Collapsed;
@@ -492,6 +493,10 @@ namespace AutoTrack
 
         private void TrackerTab_Checked(object sender, RoutedEventArgs e)
         {
+            // fires during InitializeComponent (IsChecked="True" in XAML) while
+            // later-declared named elements are still null — guard, and the
+            // initial state in XAML is already correct anyway
+            if (TrackerPane == null || PhoneHomeTabBtn == null) return;
             PhoneHomeTabBtn.IsChecked = false;
             TraceTabBtn.IsChecked = false;
             TrackerPane.Visibility = Visibility.Visible;
@@ -501,6 +506,7 @@ namespace AutoTrack
 
         private void PhoneHomeTab_Checked(object sender, RoutedEventArgs e)
         {
+            if (PhoneHomePane == null) return;
             TrackerTabBtn.IsChecked = false;
             TraceTabBtn.IsChecked = false;
             TrackerPane.Visibility = Visibility.Collapsed;
