@@ -7,7 +7,11 @@ of their connects are my blocks actually dropping?**
 Built on the lean slice of the [AutoScope](https://github.com/dparksports/autoscope)
 F# engine libraries — TCP table, svchost identity, Sysmon connect events, and
 the firewall inventory — copied here and nothing else: no probe, no decryptor,
-no archive writer, no blocking. AutoTrack is **read-only**.
+no archive writer, no blocking. AutoTrack blocks too — **AT-BLOCK** rules, reversible everywhere:
+
+- Right-click any row → **Block this address** (provenance `service/ip` baked into the rule).
+- **Block every destination of this service…** — bulk, with a review dialog; Microsoft/CDN infra flagged red.
+- **🚑 Restore Internet (all apps)** — mutual adoption: one panic button disables AutoCommand's `AC-BLOCK`, AutoScope's `AS-BLOCK` and AutoTrack's `AT-BLOCK` alike, from any of the three apps.
 
 ## What you see
 

@@ -76,18 +76,19 @@ namespace AutoTrack
             }
             catch { }
 
-            FooterText.Text = $"AutoTrack v{AppVersion} — reads only (TCP table, Sysmon, firewall inventory). " +
-                              "Blocks are reported, never created or changed here.";
+            FooterText.Text = $"AutoTrack v{AppVersion} — blocks it creates are AT-BLOCK rules, reversible here; " +
+                              "the panic button restores everything (AC/AS/AT).";
 
             WatchConfig.Configure(Identity.autotrack());
-            // adopts BOTH apps' rules so blocked-by names the owner; own
-            // prefixes are inert (this app never blocks)
+            // AutoTrack creates AT-BLOCK rules and ADOPTS both apps' rules
+            // (mutual adoption: this panic button and theirs each restore
+            // everything — AC, AS and AT alike)
             var adoptBoth = Microsoft.FSharp.Collections.ListModule.OfArray(
                 new[] { "AC-BLOCK-IP ", "AC-BLOCK-APP ", "AS-BLOCK-IP ", "AS-BLOCK-APP " });
             var naming = new FirewallNaming(
-                "AT-TRACK-IP ", "AT-TRACK-APP ", adoptBoth,
+                "AT-BLOCK-IP ", "AT-BLOCK-APP ", adoptBoth,
                 Microsoft.FSharp.Collections.ListModule.Empty<string>(),
-                Microsoft.FSharp.Collections.ListModule.Empty<string>(), "AutoTrack (unused)");
+                Microsoft.FSharp.Collections.ListModule.Empty<string>(), "AutoTrack User Block");
             _fw = new AutoScope.Engines.Firewall.FirewallService(naming);
 
             TrackGrid.ItemsSource = _rows;
@@ -166,6 +167,7 @@ namespace AutoTrack
         private static string OwnerFromRuleName(string name)
         {
             if (string.IsNullOrEmpty(name)) return null;
+            if (name.StartsWith("AT-BLOCK-", StringComparison.OrdinalIgnoreCase)) return "AutoTrack";
             if (name.StartsWith("AC-BLOCK-", StringComparison.OrdinalIgnoreCase)) return "AutoCommand";
             if (name.StartsWith("AS-BLOCK-", StringComparison.OrdinalIgnoreCase)) return "AutoScope";
             return null;
@@ -351,6 +353,136 @@ namespace AutoTrack
             _paused = !_paused;
             if (_paused) { _poll.Stop(); PauseBtn.Content = "▶ Resume"; }
             else { _poll.Start(); PauseBtn.Content = "⏸ Pause"; }
+        }
+
+// ── blocking (AT-BLOCK) ─────────────────────────────────────────
+
+        private TrackRow _menuRow;
+
+        private void TrackGrid_RightTapped(object sender, Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is DependencyObject src)
+            {
+                var el = src as FrameworkElement;
+                while (el != null && el is not CommunityToolkit.WinUI.UI.Controls.DataGridRow)
+                    el = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(el) as FrameworkElement;
+                if (el is CommunityToolkit.WinUI.UI.Controls.DataGridRow row && row.DataContext is TrackRow tr)
+                {
+                    TrackGrid.SelectedItem = tr;
+                    _menuRow = tr;
+                    RowMenu.ShowAt(TrackGrid, e.GetPosition(TrackGrid));
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private async void BlockIp_Click(object sender, RoutedEventArgs e)
+        {
+            var r = _menuRow; if (r == null) return;
+            if (!await ConfirmBlocks($"{r.Service} → {r.RemoteEndpoint}",
+                new[] { (ip: r.RemoteIp, cls: IpClassification.Classify(r.RemoteIp), svc: r.Service) })) return;
+            await _fw.AddIpBlockAsync(r.RemoteIp, Provenance(r.Service, r.RemoteIp));
+            await RefreshBlocksAsync();
+        }
+
+        private async void UnblockIp_Click(object sender, RoutedEventArgs e)
+        {
+            var r = _menuRow; if (r == null) return;
+            int removed = await _fw.RemoveBlockRulesForIpAsync(r.RemoteIp);
+            StatusText.Text = removed > 0 ? $"removed {removed} rule(s) for {r.RemoteIp}" : "no rules matched";
+            await RefreshBlocksAsync();
+        }
+
+        private async void BlockService_Click(object sender, RoutedEventArgs e)
+        {
+            var r = _menuRow; if (r == null) return;
+            // every destination this service has been tracked talking to
+            var targets = _rows.Where(x => x.Service == r.Service && System.Net.IPAddress.TryParse(x.RemoteIp, out _))
+                .GroupBy(x => x.RemoteIp, StringComparer.OrdinalIgnoreCase)
+                .Select(g => (ip: g.Key, cls: IpClassification.Classify(g.Key), svc: r.Service))
+                .ToList();
+            if (targets.Count == 0) { StatusText.Text = $"no tracked destinations for {r.Service} yet"; return; }
+            if (!await ConfirmBlocks($"every destination of {r.Service} ({targets.Count} address(es))", targets)) return;
+            foreach (var t in targets)
+                await _fw.AddIpBlockAsync(t.ip, Provenance(r.Service, t.ip));
+            await RefreshBlocksAsync();
+        }
+
+        private async void Panic_Click(object sender, RoutedEventArgs e)
+        {
+            bool yes = await Confirm("🚑 Restore Internet",
+                "DISABLE every firewall block rule from AutoTrack, AutoCommand and AutoScope?\n\n" +
+                "Nothing is deleted - re-enable from any of the three apps.");
+            if (!yes) return;
+            var res = await _fw.SetAllBlocksEnabledAsync(false);
+            StatusText.Text = $"disabled {res.Changed} of {res.Matched} block rule(s)";
+            await RefreshBlocksAsync();
+        }
+
+        private static string Provenance(string service, string ip) =>
+            $"{service}/{ip} (AutoTrack)";
+
+        /// <summary>Review dialog: risky targets (Microsoft/CDN infra) red —
+        /// blocking those breaks updates/notifications, not threats.</summary>
+        private async Task<bool> ConfirmBlocks(string what, System.Collections.Generic.IEnumerable<(string ip, string cls, string svc)> targets)
+        {
+            var panel = new StackPanel { Spacing = 4, MinWidth = 420 };
+            panel.Children.Add(new TextBlock { Text = $"Block {what}?", FontSize = 15, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+            foreach (var t in targets.Take(14))
+            {
+                bool risky = IpClassification.IsMicrosoftInfra(t.ip) || t.cls.Contains("Akamai") || t.cls.Contains("Gcore");
+                panel.Children.Add(new TextBlock
+                {
+                    Text = (risky ? "⚠ " : "· ") + t.ip + "  " + t.cls,
+                    Foreground = risky ? (Brush)Application.Current.Resources["AccentRedBrush"]
+                                       : (Brush)Application.Current.Resources["TextSecondaryBrush"],
+                    FontFamily = new FontFamily("Consolas"),
+                    FontSize = 12,
+                });
+            }
+            int total = targets.Count();
+            if (total > 14) panel.Children.Add(new TextBlock { Text = $"… and {total - 14} more", FontSize = 12 });
+            panel.Children.Add(new TextBlock
+            {
+                Text = "Reversible: unblock from the row menu, or 🚑 restores everything.",
+                FontSize = 11, Foreground = (Brush)Application.Current.Resources["TextSecondaryBrush"],
+            });
+            var dlg = new ContentDialog
+            {
+                Title = "Confirm block",
+                Content = panel,
+                PrimaryButtonText = "⛔ Block",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = App.MainWin?.Content?.XamlRoot,
+            };
+            return await dlg.ShowAsync() == ContentDialogResult.Primary;
+        }
+
+        private static async Task<bool> Confirm(string title, string body)
+        {
+            var dlg = new ContentDialog
+            {
+                Title = title, Content = body,
+                PrimaryButtonText = "Yes", CloseButtonText = "No",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = App.MainWin?.Content?.XamlRoot,
+            };
+            return await dlg.ShowAsync() == ContentDialogResult.Primary;
+        }
+
+        private void TrackerTab_Checked(object sender, RoutedEventArgs e)
+        {
+            PhoneHomeTabBtn.IsChecked = false;
+            TrackerPane.Visibility = Visibility.Visible;
+            PhoneHomePane.Visibility = Visibility.Collapsed;
+        }
+
+        private void PhoneHomeTab_Checked(object sender, RoutedEventArgs e)
+        {
+            TrackerTabBtn.IsChecked = false;
+            TrackerPane.Visibility = Visibility.Collapsed;
+            PhoneHomePane.Visibility = Visibility.Visible;
         }
 
         private void RefreshBlocks_Click(object sender, RoutedEventArgs e) => _ = RefreshBlocksAsync();
