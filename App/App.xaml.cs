@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.UI.Xaml;
 
 namespace AutoTrack
@@ -26,6 +27,26 @@ namespace AutoTrack
         {
             MainWin = new MainWindow();
             MainWin.Activate();
+
+            // UI self-test: auto-run in the SMOKE build (the release gate
+            // launches that variant and refuses to ship without PASS), or on
+            // demand with --selftest. One layout pass first so panes realize.
+#if SMOKE
+            const bool autoSelfTest = true;
+#else
+            const bool autoSelfTest = false;
+#endif
+            bool wanted = autoSelfTest || Environment.GetCommandLineArgs()
+                .Any(a => a.Equals("--selftest", StringComparison.OrdinalIgnoreCase));
+            if (!wanted) return;
+            var t = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread().CreateTimer();
+            t.Interval = TimeSpan.FromSeconds(4);
+            t.Tick += (_, _) =>
+            {
+                var (pass, detail) = SelfTest.Run(MainWin);
+                Environment.Exit(SelfTest.WriteResult(pass, detail));
+            };
+            t.Start();
         }
     }
 }

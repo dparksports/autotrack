@@ -65,6 +65,11 @@ namespace AutoTrack
 
         public MainWindow()
         {
+            // engines FIRST: views constructed during InitializeComponent
+            // (Phone Home's archive scan) read WatchConfig-dependent paths —
+            // configuring before parse removes load-order fragility
+            WatchConfig.Configure(Identity.autotrack());
+
             InitializeComponent();
             _dq = DispatcherQueue.GetForCurrentThread();
 
@@ -93,7 +98,6 @@ namespace AutoTrack
             FooterText.Text = $"AutoTrack v{AppVersion} — blocks it creates are AT-BLOCK rules, reversible here; " +
                               "the panic button restores everything (AC/AS/AT).";
 
-            WatchConfig.Configure(Identity.autotrack());
             // AutoTrack creates AT-BLOCK rules and ADOPTS both apps' rules
             // (mutual adoption: this panic button and theirs each restore
             // everything — AC, AS and AT alike)
@@ -514,6 +518,17 @@ namespace AutoTrack
             };
             return await dlg.ShowAsync() == ContentDialogResult.Primary;
         }
+
+        // self-test surface (internal by design: same assembly)
+        internal NavigationView NavView => Nav;
+        internal NavigationViewItem TrackerNavItemRef => TrackerNavItem;
+        internal NavigationViewItem PhoneHomeNavItemRef => PhoneHomeNavItem;
+        internal NavigationViewItem TraceNavItemRef => TraceNavItem;
+        internal FrameworkElement TrackerPaneRef => TrackerPane;
+        internal FrameworkElement PhoneHomePaneRef => PhoneHomePane;
+        internal FrameworkElement TracePaneRef => TracePane;
+        internal bool TrackGridExists => TrackGrid != null;
+        internal bool ChipsBuilt => ServiceChips != null && ServiceChips.Children.Count > 0;
 
         private void Nav_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {

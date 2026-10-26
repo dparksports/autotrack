@@ -4,3 +4,4 @@ publish_out/
 *.zip
 crash.log
 .vs/
+publish_smoke/
