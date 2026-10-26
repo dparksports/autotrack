@@ -15,6 +15,7 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="16,10,16,6" Spacing="8">
             <ToggleButton x:Name="TrackerTabBtn" Content="🛰 Service tracker" IsChecked="True" MinWidth="150" Checked="TrackerTab_Checked"/>
             <ToggleButton x:Name="PhoneHomeTabBtn" Content="📶 Phone home" MinWidth="130" Checked="PhoneHomeTab_Checked"/>
+            <ToggleButton x:Name="TraceTabBtn" Content="🔍 Trace" MinWidth="100" Checked="TraceTab_Checked"/>
         </StackPanel>
 
         <!-- Tracker tab -->
@@ -55,6 +56,8 @@
                         <MenuFlyoutItem Text="✕ Unblock this address" Click="UnblockIp_Click"/>
                         <MenuFlyoutSeparator/>
                         <MenuFlyoutItem Text="⛔ Block every destination of this service…" Click="BlockService_Click"/>
+                        <MenuFlyoutSeparator/>
+                        <MenuFlyoutItem Text="🔍 Trace this process…" Click="TraceProcess_Click"/>
                     </MenuFlyout>
                 </dg:DataGrid.Resources>
                 <dg:DataGrid.Columns>
@@ -79,6 +82,11 @@
         <!-- Phone home tab -->
         <Grid Grid.Row="1" x:Name="PhoneHomePane" Visibility="Collapsed">
             <views:PhoneHomeView/>
+        </Grid>
+
+        <!-- Trace tab -->
+        <Grid Grid.Row="1" x:Name="TracePane" Visibility="Collapsed">
+            <views:TraceView x:Name="TracePage"/>
         </Grid>
     </Grid>
 </Window>

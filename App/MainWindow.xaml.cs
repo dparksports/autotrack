@@ -156,7 +156,10 @@ namespace AutoTrack
                 }
                 foreach (var x in extras) _dq.TryEnqueue(() => AddChip(x));
                 _dq.TryEnqueue(() =>
-                    StatusText.Text = $"live · {_blockedByIp.Count} blocked address(es) · {_trackedServices.Count} services tracked");
+                {
+                    lock (_blockedByIp) TracePage?.UpdateBlockedMap(new Dictionary<string, string>(_blockedByIp));
+                    StatusText.Text = $"live · {_blockedByIp.Count} blocked address(es) · {_trackedServices.Count} services tracked";
+                });
             }
             catch (Exception ex)
             {
@@ -471,18 +474,38 @@ namespace AutoTrack
             return await dlg.ShowAsync() == ContentDialogResult.Primary;
         }
 
+        private void TraceTab_Checked(object sender, RoutedEventArgs e)
+        {
+            TrackerTabBtn.IsChecked = false;
+            PhoneHomeTabBtn.IsChecked = false;
+            TrackerPane.Visibility = Visibility.Collapsed;
+            PhoneHomePane.Visibility = Visibility.Collapsed;
+            TracePane.Visibility = Visibility.Visible;
+        }
+
+        private void TraceProcess_Click(object sender, RoutedEventArgs e)
+        {
+            var r = _menuRow; if (r == null) return;
+            TraceTabBtn.IsChecked = true;   // switches panes via handler
+            TracePage.TracePid(r.Pid);
+        }
+
         private void TrackerTab_Checked(object sender, RoutedEventArgs e)
         {
             PhoneHomeTabBtn.IsChecked = false;
+            TraceTabBtn.IsChecked = false;
             TrackerPane.Visibility = Visibility.Visible;
             PhoneHomePane.Visibility = Visibility.Collapsed;
+            TracePane.Visibility = Visibility.Collapsed;
         }
 
         private void PhoneHomeTab_Checked(object sender, RoutedEventArgs e)
         {
             TrackerTabBtn.IsChecked = false;
+            TraceTabBtn.IsChecked = false;
             TrackerPane.Visibility = Visibility.Collapsed;
             PhoneHomePane.Visibility = Visibility.Visible;
+            TracePane.Visibility = Visibility.Collapsed;
         }
 
         private void RefreshBlocks_Click(object sender, RoutedEventArgs e) => _ = RefreshBlocksAsync();

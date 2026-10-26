@@ -406,6 +406,17 @@ type SysmonArchiveService private () =
     /// <summary>Newest-first EID 1 create-events for a PID — the
     /// archive-backed twin of the PID Inquiry's live lookup. Streamed:
     /// the pid predicate runs per line, not over a materialized list.</summary>
+    /// <summary>EID 3 (network connect) history for one process instance,
+    /// newest first - including attempts the firewall dropped (they never
+    /// reach the TCP table). Same streamed search core as every other
+    /// query, with a per-line PID predicate.</summary>
+    static member SearchConnectionsByPid(pid: int, sinceUtc: Nullable<DateTime>, max: int) : ResizeArray<ArchiveEvent> =
+        let pidFilter = Func<Dictionary<string, string>, bool>(fun d ->
+            match d.TryGetValue("ProcessId") with
+            | true, v -> v = string pid
+            | _ -> false)
+        SysmonArchiveService.searchCore (Nullable(3), null, sinceUtc, max, pidFilter)
+
     static member SearchCreateEvents(pid: int, max: int) : ResizeArray<ArchiveEvent> =
         SysmonArchiveService.searchCore (
             Nullable 1,

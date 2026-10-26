@@ -1,0 +1,71 @@
+<Page x:Class="AutoTrack.Views.TraceView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      NavigationCacheMode="Required">
+
+    <Grid Margin="16,8,16,8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12">
+            <TextBlock Text="🔍 Trace any process instance" Style="{ThemeResource Header}" VerticalAlignment="Center"/>
+            <Button Content="＋ Pick a process…" Click="PickProcess_Click" VerticalAlignment="Center"/>
+            <TextBlock x:Name="StatusText" VerticalAlignment="Center" FontSize="11"
+                       Foreground="{ThemeResource TextSecondaryBrush}" Text="no active trace"/>
+        </StackPanel>
+
+        <!-- active traces -->
+        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,4">
+            <StackPanel x:Name="TraceChips" Orientation="Horizontal" Spacing="6"/>
+        </ScrollViewer>
+
+        <!-- identity card -->
+        <Border Grid.Row="2" x:Name="IdentityCard" Background="{ThemeResource SurfaceBrush}"
+                BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1" CornerRadius="8"
+                Padding="12,8" Margin="0,6,0,8" Visibility="Collapsed">
+            <StackPanel Spacing="2">
+                <TextBlock x:Name="IdTitle" FontSize="14" FontWeight="SemiBold"
+                           Foreground="{ThemeResource TextPrimaryBrush}"/>
+                <TextBlock x:Name="IdVerdict" FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                <TextBlock x:Name="IdChain" FontSize="11" FontFamily="Consolas"
+                           Foreground="{ThemeResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="3" x:Name="DetailPane" Visibility="Collapsed">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Destinations — attempts, cadence, blocks (right-click to block)"
+                           FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                <ScrollViewer Grid.Row="1">
+                    <StackPanel x:Name="DestList" Spacing="2"/>
+                </ScrollViewer>
+            </Grid>
+
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="HistoryHeader" Text="History — Sysmon connect events (incl. blocked attempts)"
+                           FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                <ScrollViewer Grid.Row="1">
+                    <StackPanel x:Name="HistoryList" Spacing="1"/>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

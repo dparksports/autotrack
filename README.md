@@ -27,6 +27,10 @@ no archive writer, no blocking. AutoTrack blocks too — **AT-BLOCK** rules, rev
   automatically). Chips toggle each service; "Blocked attempts only" narrows
   to the drops.
 
+## 🔍 Trace any process instance
+
+Pick any running process (searchable picker; svchost instances shown decoded to their hosted service) or right-click a tracker row → **Trace this process**. The trace assembles: identity card (verified spawn chain via the provenance engine, task attribution, svchost decode), every Sysmon connect *attempt* including firewall-dropped ones over the retained window, live established connections, and a destinations rollup with cadence regularity ("⏱ metronomic" when inter-arrival CV < 0.35). Right-click any destination to block it (AT-BLOCK). Session-scoped; multiple concurrent traces as chips. Byte counts deliberately omitted — Sysmon carries no payload sizes and honest volume needs the raw-capture stack this lean app omits.
+
 ## Plays with both apps
 
 AutoTrack adopts **both** AutoCommand's `AC-BLOCK` and AutoScope's `AS-BLOCK`
