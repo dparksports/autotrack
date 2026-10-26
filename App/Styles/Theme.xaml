@@ -25,6 +25,8 @@
     <SolidColorBrush x:Key="RowAlternateBrush" Color="#F6F8FA" />
 
     <SolidColorBrush x:Key="PageHeaderTextBrush" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#86868B" />
     <SolidColorBrush x:Key="SubtleTextBrush" Color="#86868B" />
     <SolidColorBrush x:Key="GridTextBrush" Color="#1D1D1F" />
 
