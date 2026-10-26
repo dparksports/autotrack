@@ -1,0 +1,6 @@
+bin/
+obj/
+publish_out/
+*.zip
+crash.log
+.vs/

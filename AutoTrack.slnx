@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/App/">
+    <Project Path="App/AutoTrack.csproj" />
+  </Folder>
+  <Folder Name="/Engines/">
+    <Project Path="Engines/Engines.Core/Engines.Core.fsproj" />
+    <Project Path="Engines/Engines.Firewall/Engines.Firewall.fsproj" />
+    <Project Path="Engines/Engines.Watch/Engines.Watch.fsproj" />
+  </Folder>
+</Solution>

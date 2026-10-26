@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- AutoTrack — a lightweight native tracker for the Windows services on
+       your blocked list (cryptsvc, diagtrack, netprofm, wuauserv, wlidsvc,
+       dosvc, wpnservice, msedgewebview2 + whatever else your blocks name).
+       Reads only: TCP table + Sysmon connect events + firewall inventory.
+       Lean engine copy: Engines.Core (identity, IP classification),
+       Engines.Watch (tcp table, svchost identity, sysmon connect/archive),
+       Engines.Firewall (inventory over both apps' block rules). -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RootNamespace>AutoTrack</RootNamespace>
+    <AssemblyName>AutoTrack</AssemblyName>
+    <Product>AutoTrack</Product>
+    <Version>2026.10.26</Version>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
+    <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Engines\Engines.Core\Engines.Core.fsproj" />
+    <ProjectReference Include="..\Engines\Engines.Watch\Engines.Watch.fsproj" />
+    <ProjectReference Include="..\Engines\Engines.Firewall\Engines.Firewall.fsproj" />
+  </ItemGroup>
+
+</Project>
