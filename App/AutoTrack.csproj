@@ -14,7 +14,7 @@
     <RootNamespace>AutoTrack</RootNamespace>
     <AssemblyName>AutoTrack</AssemblyName>
     <Product>AutoTrack</Product>
-    <Version>2026.10.26.5</Version>
+    <Version>2026.10.26.6</Version>
     <ApplicationManifest Condition="'$(Smoke)' != 'true'">app.manifest</ApplicationManifest>
     <ApplicationManifest Condition="'$(Smoke)' == 'true'">app.smoke.manifest</ApplicationManifest>
     <DefineConstants Condition="'$(Smoke)' == 'true'">$(DefineConstants);SMOKE</DefineConstants>
