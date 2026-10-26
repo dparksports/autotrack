@@ -27,6 +27,14 @@ no archive writer, no blocking. AutoTrack blocks too — **AT-BLOCK** rules, rev
   automatically). Chips toggle each service; "Blocked attempts only" narrows
   to the drops.
 
+## Look & feel
+
+AutoTrack now wears the Shields Up design system: Apple-style light theme with the #007AFF accent, white left navigation panel with #E5F1FF selected pills, #ECF2F9 pages over near-white cards. The top tab strip became a proper left navigation panel (Service tracker · Phone home · Trace).
+
+## Tracked vs untracked, everywhere
+
+The tracker grid gained a **Show untracked processes** toggle: every process becomes visible, with untracked rows dimmed and showing the exe name while tracked rows keep their bold service attribution. The trace picker badges tracked instances with a blue pill (the service key) and offers an **All / Tracked / Untracked** filter, tracked sorted first — "what am I already watching vs. what's new" at a glance.
+
 ## 🔍 Trace any process instance
 
 Pick any running process (searchable picker; svchost instances shown decoded to their hosted service) or right-click a tracker row → **Trace this process**. The trace assembles: identity card (verified spawn chain via the provenance engine, task attribution, svchost decode), every Sysmon connect *attempt* including firewall-dropped ones over the retained window, live established connections, and a destinations rollup with cadence regularity ("⏱ metronomic" when inter-arrival CV < 0.35). Right-click any destination to block it (AT-BLOCK). Session-scoped; multiple concurrent traces as chips. Byte counts deliberately omitted — Sysmon carries no payload sizes and honest volume needs the raw-capture stack this lean app omits.

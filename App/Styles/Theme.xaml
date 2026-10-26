@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shields Up design system — ported from scratch from the EmojiWifi Windows
+     reference (emoji-wifi-windows-260808/MainWindow.xaml): Apple-style light theme,
+     #007AFF accent, white sidebar pills (#E5F1FF selected), #F5F5F7 content over
+     white cards with a hint of drop shadow. -->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Palette (reference names kept where they map 1:1) -->
+    <SolidColorBrush x:Key="AccentBrush" Color="#007AFF" />
+    <SolidColorBrush x:Key="AccentTextBrush" Color="#007AFF" />
+    <SolidColorBrush x:Key="AccentFillBrush" Color="#007AFF" />
+    <SolidColorBrush x:Key="AccentFillHoverBrush" Color="#0062CC" />
+    <SolidColorBrush x:Key="AccentFillPressedBrush" Color="#0051A8" />
+
+    <SolidColorBrush x:Key="DangerFillBrush" Color="#D70015" />
+    <SolidColorBrush x:Key="DangerFillHoverBrush" Color="#B40011" />
+    <SolidColorBrush x:Key="DangerBrush" Color="#D70015" />
+
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="PageBackgroundBrush" Color="#ECF2F9" />
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FDFEFF" />
+    <SolidColorBrush x:Key="CardBorderBrush" Color="#EBEBEB" />
+    <SolidColorBrush x:Key="RowAlternateBrush" Color="#F6F8FA" />
+
+    <SolidColorBrush x:Key="PageHeaderTextBrush" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="SubtleTextBrush" Color="#86868B" />
+    <SolidColorBrush x:Key="GridTextBrush" Color="#1D1D1F" />
+
+    <!-- Status colors tuned for the light surfaces (≥4.5:1) -->
+    <SolidColorBrush x:Key="OkBrush" Color="#1E8E3E" />
+    <SolidColorBrush x:Key="WarnBrush" Color="#B26A00" />
+
+    <!-- Text -->
+    <x:Double x:Key="PageHeaderSize">28</x:Double>
+
+    <Style x:Key="PageHeaderText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI Variable Display, Segoe UI" />
+        <Setter Property="FontSize" Value="{StaticResource PageHeaderSize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0,0,0,4" />
+        <Setter Property="Foreground" Value="{StaticResource PageHeaderTextBrush}" />
+    </Style>
+
+    <Style x:Key="SubtleText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI Variable Display, Segoe UI" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource SubtleTextBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style x:Key="SectionHeaderText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI Variable Display, Segoe UI" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0,4,0,8" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+
+    <!-- The tab content panel: one white elevated panel per page (reference
+         CardStyle). The drop shadow is attached per-panel in code by
+         MainWindow.ApplyPanelElevation — a ThemeShadow declared in a style
+         setter is a single shared instance across all panels and crashes
+         natively once receivers are registered against it. -->
+    <Style x:Key="ContentPanel" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="20" />
+        <Setter Property="Margin" Value="0,4,0,12" />
+    </Style>
+
+    <!-- Sections inside the content panel: outlined, flat (no shadow) -->
+    <!-- Sections inside the content panel: tinted inset blocks so each section
+         reads at a glance against the white panel (Apple grouped-list pattern).
+         Fill stays lighter than the page background so sections belong to the
+         panel, and the white gutters between sections carry the rhythm. -->
+    <Style x:Key="CardPanel" TargetType="Border">
+        <Setter Property="Background" Value="#F2F5FA" />
+        <Setter Property="BorderBrush" Value="#E1E7F0" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="14" />
+        <Setter Property="Margin" Value="0,2,0,12" />
+    </Style>
+
+    <!-- The reference Button: #007AFF fill, white semibold text, radius 8 -->
+    <Style x:Key="PrimaryButton" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource AccentFillBrush}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Display, Segoe UI" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16,10" />
+    </Style>
+
+    <Style x:Key="DangerButton" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource DangerFillBrush}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Display, Segoe UI" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16,10" />
+    </Style>
+
+    <Style x:Key="MonoText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Consolas,Cascadia Mono" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Foreground" Value="#333333" />
+    </Style>
+
+    <!-- CommunityToolkit DataGrid: dark text on the light surfaces -->
+    <SolidColorBrush x:Key="DataGridForeground" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="DataGridCellForeground" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="DataGridRowForeground" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="DataGridColumnHeaderForeground" Color="#1D1D1F" />
+
+
+    <!-- AutoTrack aliases: ported pages style through the dark-era key
+         names; pointing them at the Shields Up palette restyles the app
+         in one place. -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="#ECF2F9" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#FDFEFF" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#EBEBEB" />
+    <SolidColorBrush x:Key="AccentRedBrush" Color="#D70015" />
+    <SolidColorBrush x:Key="AccentGreenBrush" Color="#1E8E3E" />
+    <SolidColorBrush x:Key="AccentAmberBrush" Color="#B26A00" />
+
+</ResourceDictionary>

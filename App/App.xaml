@@ -7,27 +7,18 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+                <!-- Shields Up design system (Apple-style light theme,
+                     #007AFF accent) with AutoTrack's key names aliased onto
+                     it — every page restyles through these. -->
+                <ResourceDictionary Source="ms-appx:///Styles/Theme.xaml" />
+                <ResourceDictionary Source="ms-appx:///Styles/MenuContrast.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <Color x:Key="BackgroundColor">#171B22</Color>
-            <Color x:Key="SurfaceColor">#1F242E</Color>
-            <Color x:Key="BorderColor">#39414F</Color>
-            <Color x:Key="TextPrimaryColor">#F1F4F9</Color>
-            <Color x:Key="TextSecondaryColor">#98A2B3</Color>
-            <Color x:Key="AccentRedColor">#F87171</Color>
-            <Color x:Key="AccentGreenColor">#34D399</Color>
-            <Color x:Key="AccentAmberColor">#FBBF24</Color>
-            <SolidColorBrush x:Key="BackgroundBrush" Color="{ThemeResource BackgroundColor}"/>
-            <SolidColorBrush x:Key="SurfaceBrush" Color="{ThemeResource SurfaceColor}"/>
-            <SolidColorBrush x:Key="BorderBrush" Color="{ThemeResource BorderColor}"/>
-            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{ThemeResource TextPrimaryColor}"/>
-            <SolidColorBrush x:Key="TextSecondaryBrush" Color="{ThemeResource TextSecondaryColor}"/>
-            <SolidColorBrush x:Key="AccentRedBrush" Color="{ThemeResource AccentRedColor}"/>
-            <SolidColorBrush x:Key="AccentGreenBrush" Color="{ThemeResource AccentGreenColor}"/>
-            <SolidColorBrush x:Key="AccentAmberBrush" Color="{ThemeResource AccentAmberColor}"/>
+            <x:Double x:Key="HeaderSize">20</x:Double>
             <Style x:Key="Header" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="20"/>
+                <Setter Property="FontFamily" Value="Segoe UI Variable Display, Segoe UI"/>
+                <Setter Property="FontSize" Value="{StaticResource HeaderSize}"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
-                <Setter Property="Foreground" Value="{ThemeResource TextPrimaryBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
                 <Setter Property="Margin" Value="0,0,0,4"/>
             </Style>
         </ResourceDictionary>

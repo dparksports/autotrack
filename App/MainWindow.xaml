@@ -5,88 +5,122 @@
         xmlns:views="using:AutoTrack.Views"
         Title="AutoTrack — service connection tracker">
 
-    <Grid Background="{ThemeResource BackgroundBrush}">
+    <Grid RequestedTheme="Light" Background="{StaticResource PageBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- tab strip -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="16,10,16,6" Spacing="8">
-            <ToggleButton x:Name="TrackerTabBtn" Content="🛰 Service tracker" IsChecked="True" MinWidth="150" Checked="TrackerTab_Checked"/>
-            <ToggleButton x:Name="PhoneHomeTabBtn" Content="📶 Phone home" MinWidth="130" Checked="PhoneHomeTab_Checked"/>
-            <ToggleButton x:Name="TraceTabBtn" Content="🔍 Trace" MinWidth="100" Checked="TraceTab_Checked"/>
-        </StackPanel>
-
-        <!-- Tracker tab -->
-        <Grid Grid.Row="1" x:Name="TrackerPane">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-
-            <StackPanel Grid.Row="0" Margin="16,0,16,4">
-                <TextBlock Text="🛰 Service tracker" Style="{ThemeResource Header}"/>
-                <TextBlock Text="What the services on your blocked list are connecting to right now — and which of their connects your blocks are dropping. Blocks you create here are AT-BLOCK rules, reversible."
-                           Foreground="{ThemeResource TextSecondaryBrush}" FontSize="12"/>
+        <!-- title bar strip (Shields Up pattern) -->
+        <Border Grid.Row="0" Background="{StaticResource SidebarBackgroundBrush}"
+                BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,0,0,1" Padding="16,8">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="🛰" FontFamily="Segoe UI Emoji" FontSize="14" VerticalAlignment="Center"/>
+                <TextBlock Text="AutoTrack" FontFamily="Segoe UI Variable Display, Segoe UI"
+                           FontSize="13" FontWeight="SemiBold" Foreground="#1D1D1F" VerticalAlignment="Center"/>
             </StackPanel>
+        </Border>
 
-            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="16,4,16,4">
-                <StackPanel x:Name="ServiceChips" Orientation="Horizontal" Spacing="6"/>
-            </ScrollViewer>
+        <NavigationView Grid.Row="1" x:Name="Nav"
+                        IsBackButtonVisible="Collapsed"
+                        IsSettingsVisible="False"
+                        IsTitleBarAutoPaddingEnabled="False"
+                        RequestedTheme="Light"
+                        SelectionChanged="Nav_SelectionChanged"
+                        OpenPaneLength="220"
+                        Background="{StaticResource SidebarBackgroundBrush}">
+            <NavigationView.MenuItems>
+                <NavigationViewItem x:Name="TrackerNavItem" Content="Service tracker" Tag="Tracker">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#x1F6E3;" FontFamily="Segoe UI Emoji"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="PhoneHomeNavItem" Content="Phone home" Tag="PhoneHome">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#x1F4F6;" FontFamily="Segoe UI Emoji"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="TraceNavItem" Content="Trace" Tag="Trace">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#x1F50D;" FontFamily="Segoe UI Emoji"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
 
-            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="16,4,16,8" Spacing="12">
-                <Button x:Name="PauseBtn" Content="⏸ Pause" Click="PauseBtn_Click" MinWidth="90"/>
-                <Button Content="⟳ Refresh blocks now" Click="RefreshBlocks_Click" MinWidth="150"/>
-                <Button Content="🚑 Restore Internet (all apps)" Click="Panic_Click" MinWidth="200"/>
-                <CheckBox x:Name="BlockedOnlyCheck" Content="Blocked attempts only" Checked="Filter_Changed" Unchecked="Filter_Changed"/>
-                <TextBlock x:Name="StatusText" VerticalAlignment="Center" FontSize="11"
-                           Foreground="{ThemeResource TextSecondaryBrush}" Text="starting…"/>
-            </StackPanel>
+            <Grid>
+                <!-- Tracker pane -->
+                <Grid x:Name="TrackerPane">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-            <dg:DataGrid Grid.Row="3" x:Name="TrackGrid" AutoGenerateColumns="False" IsReadOnly="True"
-                         FontFamily="Consolas" FontSize="11" SelectionMode="Single"
-                         RightTapped="TrackGrid_RightTapped">
-                <dg:DataGrid.Resources>
-                    <MenuFlyout x:Name="RowMenu">
-                        <MenuFlyoutItem Text="⛔ Block this address" Click="BlockIp_Click"/>
-                        <MenuFlyoutItem Text="✕ Unblock this address" Click="UnblockIp_Click"/>
-                        <MenuFlyoutSeparator/>
-                        <MenuFlyoutItem Text="⛔ Block every destination of this service…" Click="BlockService_Click"/>
-                        <MenuFlyoutSeparator/>
-                        <MenuFlyoutItem Text="🔍 Trace this process…" Click="TraceProcess_Click"/>
-                    </MenuFlyout>
-                </dg:DataGrid.Resources>
-                <dg:DataGrid.Columns>
-                    <dg:DataGridTextColumn Header="Time" Binding="{Binding TimeDisplay}" Width="90"/>
-                    <dg:DataGridTextColumn Header="Service" Binding="{Binding Service}" Width="120"/>
-                    <dg:DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="56"/>
-                    <dg:DataGridTextColumn Header="Remote" Binding="{Binding RemoteEndpoint}" Width="190"/>
-                    <dg:DataGridTextColumn Header="State" Binding="{Binding State}" Width="100"/>
-                    <dg:DataGridTextColumn Header="Class" Binding="{Binding Class}" Width="150"/>
-                    <dg:DataGridTextColumn Header="Blocked by" Binding="{Binding BlockedBy}" Width="110"/>
-                    <dg:DataGridTextColumn Header="Hostname" Binding="{Binding Hostname}" Width="*"/>
-                </dg:DataGrid.Columns>
-            </dg:DataGrid>
+                    <StackPanel Grid.Row="0" Margin="16,8,16,4">
+                        <TextBlock Text="Service tracker" Style="{StaticResource PageHeaderText}"/>
+                        <TextBlock Text="What the services on your blocked list are connecting to — and which of their connects your blocks drop. Blocks you create are AT-BLOCK rules, reversible."
+                                   Foreground="{StaticResource SubtleTextBrush}" FontSize="12" TextWrapping="Wrap"/>
+                    </StackPanel>
 
-            <Border Grid.Row="4" Background="{ThemeResource SurfaceBrush}" BorderBrush="{ThemeResource BorderBrush}"
-                    BorderThickness="0,1,0,0" Padding="12,6">
-                <TextBlock x:Name="FooterText" FontSize="11" Foreground="{ThemeResource TextSecondaryBrush}"
-                           Text="AutoTrack"/>
-            </Border>
-        </Grid>
+                    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="16,4,16,4">
+                        <StackPanel x:Name="ServiceChips" Orientation="Horizontal" Spacing="6"/>
+                    </ScrollViewer>
 
-        <!-- Phone home tab -->
-        <Grid Grid.Row="1" x:Name="PhoneHomePane" Visibility="Collapsed">
-            <views:PhoneHomeView/>
-        </Grid>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="16,4,16,8" Spacing="12">
+                        <Button x:Name="PauseBtn" Content="⏸ Pause" Click="PauseBtn_Click" MinWidth="90"/>
+                        <Button Content="⟳ Refresh blocks now" Click="RefreshBlocks_Click" MinWidth="150"/>
+                        <Button Content="🚑 Restore Internet (all apps)" Click="Panic_Click" MinWidth="200"/>
+                        <CheckBox x:Name="BlockedOnlyCheck" Content="Blocked attempts only" Checked="Filter_Changed" Unchecked="Filter_Changed"/>
+                        <CheckBox x:Name="ShowUntrackedCheck" Content="Show untracked processes" Checked="Filter_Changed" Unchecked="Filter_Changed"
+                                  ToolTipService.ToolTip="Admit every process — untracked rows appear dimmed with the exe name; tracked rows keep their service attribution."/>
+                        <TextBlock x:Name="StatusText" VerticalAlignment="Center" FontSize="11"
+                                   Foreground="{StaticResource SubtleTextBrush}" Text="starting…"/>
+                    </StackPanel>
 
-        <!-- Trace tab -->
-        <Grid Grid.Row="1" x:Name="TracePane" Visibility="Collapsed">
-            <views:TraceView x:Name="TracePage"/>
-        </Grid>
+                    <dg:DataGrid Grid.Row="3" x:Name="TrackGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                                 FontFamily="Consolas" FontSize="11" SelectionMode="Single"
+                                 LoadingRow="TrackGrid_LoadingRow"
+                                 RightTapped="TrackGrid_RightTapped">
+                        <dg:DataGrid.Resources>
+                            <MenuFlyout x:Name="RowMenu">
+                                <MenuFlyoutItem Text="⛔ Block this address" Click="BlockIp_Click"/>
+                                <MenuFlyoutItem Text="✕ Unblock this address" Click="UnblockIp_Click"/>
+                                <MenuFlyoutSeparator/>
+                                <MenuFlyoutItem Text="⛔ Block every destination of this service…" Click="BlockService_Click"/>
+                                <MenuFlyoutSeparator/>
+                                <MenuFlyoutItem Text="🔍 Trace this process…" Click="TraceProcess_Click"/>
+                            </MenuFlyout>
+                        </dg:DataGrid.Resources>
+                        <dg:DataGrid.Columns>
+                            <dg:DataGridTextColumn Header="Time" Binding="{Binding TimeDisplay}" Width="90"/>
+                            <dg:DataGridTextColumn Header="Service / process" Binding="{Binding Service}" Width="140"/>
+                            <dg:DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="56"/>
+                            <dg:DataGridTextColumn Header="Remote" Binding="{Binding RemoteEndpoint}" Width="190"/>
+                            <dg:DataGridTextColumn Header="State" Binding="{Binding State}" Width="100"/>
+                            <dg:DataGridTextColumn Header="Class" Binding="{Binding Class}" Width="150"/>
+                            <dg:DataGridTextColumn Header="Blocked by" Binding="{Binding BlockedBy}" Width="110"/>
+                            <dg:DataGridTextColumn Header="Hostname" Binding="{Binding Hostname}" Width="*"/>
+                        </dg:DataGrid.Columns>
+                    </dg:DataGrid>
+                </Grid>
+
+                <!-- Phone home pane -->
+                <Grid x:Name="PhoneHomePane" Visibility="Collapsed">
+                    <views:PhoneHomeView/>
+                </Grid>
+
+                <!-- Trace pane -->
+                <Grid x:Name="TracePane" Visibility="Collapsed">
+                    <views:TraceView x:Name="TracePage"/>
+                </Grid>
+            </Grid>
+        </NavigationView>
+
+        <Border Grid.Row="2" Background="{StaticResource SidebarBackgroundBrush}"
+                BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,1,0,0" Padding="12,6">
+            <TextBlock x:Name="FooterText" FontSize="11" Foreground="{StaticResource SubtleTextBrush}" Text="AutoTrack"/>
+        </Border>
     </Grid>
 </Window>

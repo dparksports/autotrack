@@ -88,25 +88,32 @@ namespace AutoTrack.Views
         private sealed class ProcRow
         {
             public int Pid; public string Name; public string Display;
+            public bool Tracked; public string TrackedService;
+            public string TrackedVisibility;
             public override string ToString() => Display;
         }
 
         private async void PickProcess_Click(object sender, RoutedEventArgs e)
         {
-            var list = new ListView { MaxHeight = 420, MinWidth = 440,
-                FontFamily = new FontFamily("Consolas"), FontSize = 12,
-                ItemsSource = ProcRows() };
+            _pickerFilter = "All";
+            var list = new ListView { MaxHeight = 420, MinWidth = 480,
+                FontSize = 12, ItemTemplate = ProcRowTemplate() };
+            ApplyPickerSource(list, "");
             var search = new TextBox { PlaceholderText = "filter (e.g. svchost, msedge, python)" };
-            var panel = new StackPanel { Spacing = 8, MinWidth = 460 };
+            var filterAll = new RadioButton { Content = "All", IsChecked = true, Tag = "All" };
+            var filterTracked = new RadioButton { Content = "Tracked", Tag = "Tracked" };
+            var filterUntracked = new RadioButton { Content = "Untracked", Tag = "Untracked" };
+            var filterRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
+            filterRow.Children.Add(filterAll);
+            filterRow.Children.Add(filterTracked);
+            filterRow.Children.Add(filterUntracked);
+            foreach (var rb in new[] { filterAll, filterTracked, filterUntracked })
+                rb.Checked += (_, _) => { _pickerFilter = rb.Tag as string; ApplyPickerSource(list, search.Text); };
+            var panel = new StackPanel { Spacing = 8, MinWidth = 500 };
             panel.Children.Add(search);
+            panel.Children.Add(filterRow);
             panel.Children.Add(list);
-            search.TextChanged += (_, _) =>
-            {
-                var q = search.Text?.Trim() ?? "";
-                list.ItemsSource = string.IsNullOrEmpty(q)
-                    ? ProcRows()
-                    : ProcRows().Where(p => p.Display.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
-            };
+            search.TextChanged += (_, _) => ApplyPickerSource(list, search.Text);
 
             var dlg = new ContentDialog
             {
@@ -119,6 +126,54 @@ namespace AutoTrack.Views
             };
             if (await dlg.ShowAsync() == ContentDialogResult.Primary && list.SelectedItem is ProcRow pr)
                 TracePid(pr.Pid);
+        }
+
+        private string _pickerFilter = "All";
+
+        /// <summary>Is this instance one of the tracked services? The app's
+        /// tracked set lives in MainWindow — exposed via a static hook so the
+        /// picker badges and the grid agree on one definition.</summary>
+        internal static Func<int, string, string> TrackedServiceFor =
+            (_, _) => null;   // MainWindow overwrites at startup
+
+        private bool RowPassesFilter(ProcRow p) =>
+            _pickerFilter switch
+            {
+                "Tracked" => p.Tracked,
+                "Untracked" => !p.Tracked,
+                _ => true,
+            };
+
+        private void ApplyPickerSource(ListView list, string query)
+        {
+            var q = (query ?? "").Trim();
+            var rows = ProcRows()
+                .Where(p => string.IsNullOrEmpty(q) || p.Display.Contains(q, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(p => p.Tracked)
+                .ToList();
+            list.ItemsSource = rows.Where(RowPassesFilter).ToList();
+        }
+
+        /// <summary>Row: pid (secondary) · name — with a #007AFF 'tracked'
+        /// pill when the instance belongs to a tracked service.</summary>
+        private static DataTemplate ProcRowTemplate() =>
+            (DataTemplate)Microsoft.UI.Xaml.Markup.XamlBindingHelper.ConvertValue(
+                typeof(DataTemplate), null) is null ? null : MakeRowTemplate();
+
+        private static DataTemplate MakeRowTemplate()
+        {
+            // built in code: XamlReader needs a string; keep it small
+            string xaml = "<DataTemplate xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">" +
+                "<StackPanel Orientation=\"Horizontal\" Spacing=\"8\">" +
+                  "<TextBlock Text=\"{Binding Pid}\" FontFamily=\"Consolas\" Foreground=\"#86868B\" " +
+                    "VerticalAlignment=\"Center\" Width=\"52\"/>" +
+                  "<TextBlock Text=\"{Binding Name}\" VerticalAlignment=\"Center\"/>" +
+                  "<Border Background=\"#E5F1FF\" CornerRadius=\"8\" Padding=\"8,1\" " +
+                    "Visibility=\"{Binding TrackedVisibility}\" VerticalAlignment=\"Center\">" +
+                    "<TextBlock Text=\"{Binding TrackedService}\" FontSize=\"11\" Foreground=\"#007AFF\"/>" +
+                  "</Border>" +
+                "</StackPanel></DataTemplate>";
+            return (DataTemplate)Microsoft.UI.Xaml.Markup.XamlReader.Load(xaml);
         }
 
         private static List<ProcRow> ProcRows()
@@ -140,6 +195,10 @@ namespace AutoTrack.Views
                     }
                     catch { }
                 }
+                row.TrackedService = TrackedServiceFor?.Invoke(row.Pid, row.Name);
+                row.Tracked = !string.IsNullOrEmpty(row.TrackedService);
+                if (row.Tracked) row.Display += $"   [tracked: {row.TrackedService}]";
+                row.TrackedVisibility = row.Tracked ? "Visible" : "Collapsed";
                 rows.Add(row);
             }
             return rows;

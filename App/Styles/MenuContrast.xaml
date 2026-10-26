@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Menu/nav styling from the EmojiWifi reference: white sidebar (#E5E5E5 divider),
+     nav items as pills — hover #F5F5F5, selected #E5F1FF with #007AFF semibold text.
+     Keys the running WinAppSDK doesn't know are ignored harmlessly. -->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Pane: white with the reference's divider feel -->
+    <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#FFFFFF" />
+
+    <!-- Nav item text: near-black, accent blue when selected -->
+    <SolidColorBrush x:Key="NavigationViewItemForeground" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="NavigationViewItemForegroundPointerOver" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="NavigationViewItemForegroundPressed" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#007AFF" />
+    <SolidColorBrush x:Key="NavigationViewItemForegroundChecked" Color="#007AFF" />
+    <SolidColorBrush x:Key="NavigationViewItemForegroundDisabled" Color="#B0B0B5" />
+    <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPointerOver" Color="#007AFF" />
+    <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPressed" Color="#0062CC" />
+    <SolidColorBrush x:Key="NavigationViewItemForegroundCheckedPointerOver" Color="#007AFF" />
+    <SolidColorBrush x:Key="NavigationViewItemForegroundCheckedPressed" Color="#0062CC" />
+    <SolidColorBrush x:Key="NavigationViewItemForegroundOnPointerOver" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="NavigationViewItemForegroundOnPressed" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="NavigationViewItemForegroundOnSelected" Color="#007AFF" />
+
+    <!-- Nav item pills: hover gray, selected the signature light-blue pill -->
+    <SolidColorBrush x:Key="NavigationViewItemBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="NavigationViewItemBackgroundPointerOver" Color="#F5F5F5" />
+    <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="#EDEDED" />
+    <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#E5F1FF" />
+    <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="#DDEBFF" />
+    <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPressed" Color="#D3E6FF" />
+    <SolidColorBrush x:Key="NavigationViewItemBackgroundChecked" Color="#E5F1FF" />
+    <SolidColorBrush x:Key="NavigationViewItemBackgroundCheckedPointerOver" Color="#DDEBFF" />
+    <SolidColorBrush x:Key="NavigationViewItemBackgroundCheckedPressed" Color="#D3E6FF" />
+
+    <!-- Right-click context menus: near-black text -->
+    <SolidColorBrush x:Key="MenuFlyoutItemForeground" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="#1D1D1F" />
+    <SolidColorBrush x:Key="MenuFlyoutItemForegroundDisabled" Color="#B0B0B5" />
+    <SolidColorBrush x:Key="MenuFlyoutItemBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="#F5F5F5" />
+    <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="#EDEDED" />
+
+</ResourceDictionary>

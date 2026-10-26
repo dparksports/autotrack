@@ -30,6 +30,7 @@ namespace AutoTrack
         public string Class { get; set; }
         public string BlockedBy { get; set; }      // AutoCommand | AutoScope | ""
         public string Hostname { get; set; }
+        public bool Untracked { get; set; }   // admitted by 'Show untracked'
     }
 
     /// <summary>
@@ -70,11 +71,24 @@ namespace AutoTrack
             try
             {
                 var tb = AppWindow.TitleBar;
-                tb.ButtonForegroundColor = Microsoft.UI.Colors.LightGray;
-                tb.ButtonBackgroundColor = Windows.UI.Color.FromArgb(255, 0x17, 0x1B, 0x22);
-                tb.ButtonInactiveBackgroundColor = Windows.UI.Color.FromArgb(255, 0x17, 0x1B, 0x22);
+                // light theme (Shields Up): dark glyphs on white
+                tb.ButtonForegroundColor = Windows.UI.Color.FromArgb(255, 0x1D, 0x1D, 0x1F);
+                tb.ButtonBackgroundColor = Windows.UI.Color.FromArgb(255, 255, 255, 255);
+                tb.ButtonInactiveBackgroundColor = Windows.UI.Color.FromArgb(255, 255, 255, 255);
             }
             catch { }
+
+            Nav.SelectedItem = TrackerNavItem;
+
+            // one definition of "tracked": the Trace picker badges and the
+            // grid filters agree through this hook
+            Views.TraceView.TrackedServiceFor = (pid, exe) =>
+            {
+                var svc = ServiceFor(pid);
+                if (svc != null) return svc;
+                return string.Equals(exe, "msedgewebview2", StringComparison.OrdinalIgnoreCase)
+                    && _trackedServices.Contains("msedgewebview2") ? "msedgewebview2" : null;
+            };
 
             FooterText.Text = $"AutoTrack v{AppVersion} — blocks it creates are AT-BLOCK rules, reversible here; " +
                               "the panic button restores everything (AC/AS/AT).";
@@ -196,6 +210,19 @@ namespace AutoTrack
             return svc.Length is > 2 and < 24 && svc.All(char.IsLetterOrDigit) ? svc : null;
         }
 
+        private static string ExeShortName(string image)
+        {
+            if (string.IsNullOrEmpty(image)) return "?";
+            string n = System.IO.Path.GetFileName(image);
+            return n.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? n[..^4] : n;
+        }
+
+        private string UntrackedNameFor(int pid)
+        {
+            var (exe, _) = Identify(pid);
+            return string.IsNullOrEmpty(exe) ? $"pid {pid}" : exe;
+        }
+
         // ── attribution ────────────────────────────────────────────────────
 
         private (string Exe, SvchostPidIdentity Id) Identify(int pid)
@@ -240,7 +267,9 @@ namespace AutoTrack
         {
             if (!e.IsTcp) return;
             string svc = ServiceFor(e.Pid, e.Image);
-            if (svc == null) return;
+            bool untracked = svc == null;
+            if (untracked && ShowUntrackedCheck?.IsChecked != true) return;
+            if (untracked) svc = ExeShortName(e.Image);
 
             string blockedBy = "";
             lock (_blockedByIp)
@@ -257,6 +286,7 @@ namespace AutoTrack
                 Class = IpClassification.Classify(e.DestIp),
                 BlockedBy = blockedBy,
                 Hostname = "",
+                Untracked = untracked,
             }, isAttempt: true);
         }
 
@@ -267,7 +297,9 @@ namespace AutoTrack
                 foreach (var r in TcpConnectionTable.GetEstablished())
                 {
                     string svc = ServiceFor(r.Pid);
-                    if (svc == null) continue;
+                    bool untracked = svc == null;
+                    if (untracked && ShowUntrackedCheck?.IsChecked != true) continue;
+                    if (untracked) svc = UntrackedNameFor(r.Pid);
                     string blockedBy = "";
                     lock (_blockedByIp)
                         if (_blockedByIp.TryGetValue(r.RemoteIp, out var owner)) blockedBy = owner;
@@ -282,6 +314,7 @@ namespace AutoTrack
                         Class = IpClassification.Classify(r.RemoteIp),
                         BlockedBy = blockedBy,
                         Hostname = "",
+                        Untracked = untracked,
                     }, isAttempt: false);
                 }
             }
@@ -339,7 +372,7 @@ namespace AutoTrack
         }
 
         private bool PassesFilter(TrackRow r) =>
-            ServiceEnabled(r.Service) &&
+            (r.Untracked || ServiceEnabled(r.Service)) &&
             (BlockedOnlyCheck.IsChecked != true || r.State == "Blocked");
 
         private void Refilter()
@@ -350,6 +383,14 @@ namespace AutoTrack
         }
 
         private void Filter_Changed(object sender, RoutedEventArgs e) => Refilter();
+
+        private void TrackGrid_LoadingRow(object sender, CommunityToolkit.WinUI.UI.Controls.DataGridRowEventArgs e)
+        {
+            // untracked processes render dimmed with the exe name; tracked
+            // rows keep full service styling
+            if (e.Row.DataContext is TrackRow r)
+                e.Row.Opacity = r.Untracked ? 0.55 : 1.0;
+        }
 
         private void PauseBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -474,44 +515,22 @@ namespace AutoTrack
             return await dlg.ShowAsync() == ContentDialogResult.Primary;
         }
 
-        private void TraceTab_Checked(object sender, RoutedEventArgs e)
+        private void Nav_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
-            if (TracePane == null) return;
-            TrackerTabBtn.IsChecked = false;
-            PhoneHomeTabBtn.IsChecked = false;
-            TrackerPane.Visibility = Visibility.Collapsed;
-            PhoneHomePane.Visibility = Visibility.Collapsed;
-            TracePane.Visibility = Visibility.Visible;
+            // parse-safe: nothing sets selection in XAML; the ctor sets it
+            // after InitializeComponent, so named elements always exist here
+            if (TrackerPane == null) return;
+            string tag = (args.SelectedItemContainer?.Tag as string) ?? "Tracker";
+            TrackerPane.Visibility = tag == "Tracker" ? Visibility.Visible : Visibility.Collapsed;
+            PhoneHomePane.Visibility = tag == "PhoneHome" ? Visibility.Visible : Visibility.Collapsed;
+            TracePane.Visibility = tag == "Trace" ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void TraceProcess_Click(object sender, RoutedEventArgs e)
         {
             var r = _menuRow; if (r == null) return;
-            TraceTabBtn.IsChecked = true;   // switches panes via handler
+            Nav.SelectedItem = TraceNavItem;   // switches panes via handler
             TracePage.TracePid(r.Pid);
-        }
-
-        private void TrackerTab_Checked(object sender, RoutedEventArgs e)
-        {
-            // fires during InitializeComponent (IsChecked="True" in XAML) while
-            // later-declared named elements are still null — guard, and the
-            // initial state in XAML is already correct anyway
-            if (TrackerPane == null || PhoneHomeTabBtn == null) return;
-            PhoneHomeTabBtn.IsChecked = false;
-            TraceTabBtn.IsChecked = false;
-            TrackerPane.Visibility = Visibility.Visible;
-            PhoneHomePane.Visibility = Visibility.Collapsed;
-            TracePane.Visibility = Visibility.Collapsed;
-        }
-
-        private void PhoneHomeTab_Checked(object sender, RoutedEventArgs e)
-        {
-            if (PhoneHomePane == null) return;
-            TrackerTabBtn.IsChecked = false;
-            TraceTabBtn.IsChecked = false;
-            TrackerPane.Visibility = Visibility.Collapsed;
-            PhoneHomePane.Visibility = Visibility.Visible;
-            TracePane.Visibility = Visibility.Collapsed;
         }
 
         private void RefreshBlocks_Click(object sender, RoutedEventArgs e) => _ = RefreshBlocksAsync();
